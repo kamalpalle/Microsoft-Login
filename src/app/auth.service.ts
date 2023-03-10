@@ -10,7 +10,7 @@ export class AuthService {
   private msalConfig: msal.Configuration = {
     auth: {
       clientId: '081a4ee1-471e-4772-a894-585a64fc8a55',
-      authority: `https://login.microsoftonline.com/<your-tenant-id>`,
+      authority: `https://login.microsoftonline.com/f8cdef31-a31e-4b4a-93e4-5f571e91255a`,
       redirectUri: window.location.origin,
     },
     cache: {
@@ -41,8 +41,9 @@ export class AuthService {
   
   // define the logout() method to sign the user out of the application
   logout() {
-    this.msalInstance.logout();
+    this.msalInstance.logoutPopup();
   }
+  
   
   // define the isLoggedIn() method to check whether the user is currently signed in
   isLoggedIn(): boolean {
@@ -51,15 +52,17 @@ export class AuthService {
   }
   
   // define the getAccessToken() method to retrieve an access token for the Graph API
-  getAccessToken(): Promise<string> {
+  async getAccessToken(): Promise<string> {
     const request = {
       scopes: ['https://graph.microsoft.com/user.read'],
     };
-    return this.msalInstance.acquireTokenSilent(request)
-      .then((response: msal.AuthenticationResult) => response.accessToken)
-      .catch(() => {
-        return this.msalInstance.acquireTokenPopup(request)
-          .then((response: msal.AuthenticationResult) => response.accessToken)
-      });
+    try {
+      const response = await this.msalInstance.acquireTokenSilent(request);
+      return response.accessToken;
+    } catch (error) {
+      const response = await this.msalInstance.acquireTokenPopup(request);
+      return response.accessToken;
+    }
   }
+
 }
